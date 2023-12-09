@@ -21,7 +21,7 @@ class ClipFinetuner(L.LightningModule):
         return image_features, text_features
 
     def training_step(self, batch, batch_idx):
-        images, tokenized_text = batch # images:(batch, channels, width, height), tokenized_text:(batch, vocab_dim)
+        images, tokenized_text = batch # images:(batch, channels, width, height), tokenized_text:(batch, tokenizer_dim)
 
         # get embeddings
         image_features, text_features = self(images, tokenized_text.squeeze(1))

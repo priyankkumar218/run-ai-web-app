@@ -8,7 +8,7 @@ def finetune(folder_path):
         st.success(f"Fine-tuning on folder: {folder_path}")
 
         # Command to run the finetune.py script
-        command = ["python", "finetune.py", folder_path]
+        command = ["python", "finetune.py", '--data', folder_path]
 
         try:
             # Run the command
@@ -22,10 +22,10 @@ def finetune(folder_path):
         st.error("Please select a valid folder.")
 
 def main():
-    st.title("Fine-tune App")
+    st.title("Finetune Clip")
 
     # Allow the user to drag and drop a folder
-    folder_path = st.file_uploader("Drag and drop a folder here", type="folder")
+    folder_path = st.file_uploader("Drag and drop your data folder here", type="folder")
 
     if folder_path:
         # Fine-tune button

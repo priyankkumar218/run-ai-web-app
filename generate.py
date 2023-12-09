@@ -1,6 +1,7 @@
 import torch
 import clip
 from PIL import Image
+import lightning as L
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)

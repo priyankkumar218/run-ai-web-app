@@ -1,11 +1,10 @@
 # main.py
-# ! pip install torchvision, CLIP
 import os, math
 import torch, torch.nn as nn, torch.utils.data as data
 import lightning as L
 
 import clip
-from example_dataset.dataset import ImageTextDataset
+from dataset import ImageTextDataset
 
 # ------------------
 # DEFINE THE FINETUNING ROUTINE
@@ -53,32 +52,34 @@ class ClipFinetuner(L.LightningModule):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
         return optimizer
 
-# ------------------
-# LOAD OPEN AI MODEL
-# ------------------
-clip_model, preprocess = clip.load("ViT-B/32")
 
-# ------------------
-# LOAD THE DATA
-# ------------------
-data_root = os.getcwd() + '/example_dataset'
-custom_dataset = ImageTextDataset(
-    image_folder=data_root, 
-    annotation_file=f'{data_root}/annotations.txt', 
-    tokenize=clip.tokenize, 
-    transform=preprocess
-)
+if __name__ == '__main__':
+    # ------------------
+    # LOAD OPEN AI MODEL
+    # ------------------
+    clip_model, preprocess = clip.load("ViT-B/32")
 
-# ------------------
-# SETUP THE FINETUNING
-# ------------------
-batch_size = 2
-train_data = data.DataLoader(custom_dataset, batch_size=batch_size, shuffle=True, num_workers=3)
-clip_finetuner = ClipFinetuner(clip_model)
+    # ------------------
+    # LOAD THE DATA
+    # ------------------
+    data_root = os.getcwd() + '/example_dataset'
+    custom_dataset = ImageTextDataset(
+        image_folder=data_root, 
+        annotation_file=f'{data_root}/annotations.txt', 
+        tokenize=clip.tokenize, 
+        transform=preprocess
+    )
 
-# ------------------
-# PTL TRAINER auto-scales across CPUs, GPUs, etc...
-# ------------------
-# Initialize the trainer
-trainer = L.Trainer(max_steps=1000, log_every_n_steps=2)
-trainer.fit(clip_finetuner, train_data)
+    # ------------------
+    # SETUP THE FINETUNING
+    # ------------------
+    batch_size = 2
+    train_data = data.DataLoader(custom_dataset, batch_size=batch_size, shuffle=True, num_workers=3)
+    clip_finetuner = ClipFinetuner(clip_model)
+
+    # ------------------
+    # PTL TRAINER auto-scales across CPUs, GPUs, etc...
+    # ------------------
+    # Initialize the trainer
+    trainer = L.Trainer(max_steps=1000, log_every_n_steps=2)
+    trainer.fit(clip_finetuner, train_data)

@@ -2,6 +2,7 @@
 import os, math
 import torch, torch.nn as nn, torch.utils.data as data
 import lightning as L
+from argparse import ArgumentParser
 
 import clip
 from dataset import ImageTextDataset
@@ -54,6 +55,11 @@ class ClipFinetuner(L.LightningModule):
 
 
 if __name__ == '__main__':
+    # enable CLI commands
+    parser = ArgumentParser()
+    parser.add_argument('--data', type=str, default=os.getcwd() + '/example_dataset')
+    args = parser.parse_args()
+
     # ------------------
     # LOAD OPEN AI MODEL
     # ------------------
@@ -62,10 +68,9 @@ if __name__ == '__main__':
     # ------------------
     # LOAD THE DATA
     # ------------------
-    data_root = os.getcwd() + '/example_dataset'
     custom_dataset = ImageTextDataset(
-        image_folder=data_root, 
-        annotation_file=f'{data_root}/annotations.txt', 
+        image_folder=args.data, 
+        annotation_file=f'{args.data}/annotations.txt', 
         tokenize=clip.tokenize, 
         transform=preprocess
     )

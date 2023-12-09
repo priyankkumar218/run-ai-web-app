@@ -1,16 +1,18 @@
 import os, math
 import torch, torch.nn as nn, torch.utils.data as data
 import lightning as L
+from argparse import ArgumentParser
 
 import clip
 from dataset import ImageTextDataset
 
 # DEFINE THE FINETUNING ROUTINE
 class ClipFinetuner(L.LightningModule):
-    def __init__(self, clip_model):
+    def __init__(self, clip_model, config):
         super().__init__()
         self.clip_model = clip_model
         self.logit_scale = nn.Parameter(torch.ones([]) * math.log(1 / 0.07))
+        self.config = config
 
     def forward(self, image, text):
         image_features = self.clip_model.encode_image(image)
@@ -41,28 +43,34 @@ class ClipFinetuner(L.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.config['lr'])
         return optimizer
 
 
 if __name__ == '__main__':
+    # enable CLI commands
+    parser = ArgumentParser()
+    parser.add_argument('--data', type=str, default=os.getcwd() + '/example_dataset')
+    parser.add_argument('--max_steps', type=int, default=100)
+    parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('--batch_size', type=int, default=2)
+    args = parser.parse_args()
 
     # LOAD OPEN AI MODEL
     clip_model, preprocess = clip.load("ViT-B/32")
 
     # LOAD THE DATA
-    data_path = os.getcwd() + '/example_dataset'
     custom_dataset = ImageTextDataset(
-        image_folder=data_path, 
-        annotation_file=f'{data_path}/annotations.txt', 
+        image_folder=args.data, 
+        annotation_file=f'{args.data}/annotations.txt', 
         tokenize=clip.tokenize, 
         transform=preprocess
     )
 
     # SETUP THE FINETUNING
-    train_data = data.DataLoader(custom_dataset, batch_size=2, shuffle=True, num_workers=3)
-    clip_finetuner = ClipFinetuner(clip_model)
+    train_data = data.DataLoader(custom_dataset, batch_size=args.batch_size, shuffle=True, num_workers=3)
+    clip_finetuner = ClipFinetuner(clip_model, config={'lr': args.lr})
 
     # PTL TRAINER auto-scales across CPUs, GPUs, etc...
-    trainer = L.Trainer(max_steps=100, log_every_n_steps=2)
+    trainer = L.Trainer(max_steps=args.max_steps, log_every_n_steps=2)
     trainer.fit(clip_finetuner, train_data)

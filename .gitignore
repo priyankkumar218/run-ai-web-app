@@ -5,6 +5,10 @@ model_weights/
 pip-wheel-metadata/
 lightning_logs/
 .vscode/
+annotations/
+train2017/
+previews/
+val2017/
 
 # Documentations
 docs/venv*/
